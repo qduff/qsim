@@ -3,6 +3,11 @@
 #include <cstdint>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+
+#include "libraries/imgui/imgui.h"
+#include "libraries/imgui/imgui_impl_glfw.h"
+#include "libraries/imgui/imgui_impl_opengl3.h"
 // clang-format on
 
 #include "utils/loadmcm.h"
@@ -28,7 +33,7 @@ void renderOSD(Shader &s, uint8_t *osdpnt, unsigned int texture,
   s.use();
   const int width = 30;
   const int height = 16;
-  for (char y = 0; y < 16; ++y) { // run y backwards, due to betaflgith
+  for (char y = 0; y < 16; ++y) { //
     for (char x = 0; x < 30; ++x) {
       uint8_t curchar = *(osdpnt + (15 - y) * width + x);
       // if (x == 0 || y == 0 || x == width - 1 || y == height - 1) {
@@ -44,7 +49,8 @@ void renderOSD(Shader &s, uint8_t *osdpnt, unsigned int texture,
       float rxl = -1 + 2 * ((float)(x) / width);
       float rxr = -1 + 2 * ((float)(x + 1) / width);
       // printf("y:%f -> %f", ryd, ryu);
-
+      //* it is important to note that these have to be rendered
+      //* flipped in the Y-AXIS
       float vertices[] = {
           rxr, ryu, 0.0f, tex_xr, 1.0f, // top right
           rxr, ryd, 0.0f, tex_xr, 0.0f, // bottom right
@@ -70,9 +76,6 @@ int main() {
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-  bool i = ki.start();
-  printf("start:%d\n", i);
-  printf("start:%d\n", ki.isRunning());
 
   // glfw window creation
   // --------------------
@@ -93,6 +96,30 @@ int main() {
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
   }
+
+
+
+  // configure imgui
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+    bool show_demo_window = true;
+
+
+
+
+
+
+  bool i = ki.start();
+  printf("start:%d\n", i);
+  printf("start:%d\n", ki.isRunning());
+
 
   // build and compile our shader zprogram
   // ------------------------------------
@@ -190,14 +217,29 @@ int main() {
   double lasttime = glfwGetTime();
   int frameslasts = 0;
   float fps = 0;
+
+
+
+
+
+  // GAME LOOP
+
   while (!glfwWindowShouldClose(window)) {
     // input
     // -----
     processInput(window);
+
     // ki.debugOsdPrint();
 
     // render
     // ------
+      ImGui_ImplOpenGL3_NewFrame();
+      ImGui_ImplGlfw_NewFrame();
+      ImGui::NewFrame();
+
+
+  ImGui::ShowDemoWindow(&show_demo_window);
+
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -216,6 +258,12 @@ int main() {
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse
     // moved etc.)
     // -------------------------------------------------------------------------------
+
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+
     glfwSwapBuffers(window);
 
     glfwPollEvents();
