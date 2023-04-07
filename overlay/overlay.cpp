@@ -1,14 +1,10 @@
 #include "overlay.h"
 #include <istream>
+#include <vector>
 
 bool my_tool_active;
 
-
-void renderFPSbox(kernelInterface& ki, float frametime, int fps){
-
-
-  
-
+void renderFPSbox(kernelInterface &ki, float frametime, int fps) {
   static int location = 0;
   ImGuiIO &io = ImGui::GetIO();
   ImGuiWindowFlags window_flags =
@@ -41,7 +37,7 @@ void renderFPSbox(kernelInterface& ki, float frametime, int fps){
     ImGui::Text("Game Info");
     ImGui::Separator();
     ImGui::Indent(16.0f);
-    ImGui::Text("Frame time: %fms", frametime*1000);
+    ImGui::Text("Frame time: %fms", frametime * 1000);
     ImGui::Text("FPS: %i", fps);
 
     ImGui::Unindent(16.0f);
@@ -50,8 +46,9 @@ void renderFPSbox(kernelInterface& ki, float frametime, int fps){
     ImGui::Separator();
     ImGui::Indent(16.0f);
     ImGui::Text("Sim time: %fs", (float)ki.shmem->micros_passed / 1000000.0);
-    ImGui::Text("Cycle time %fms",(float)ki.shmem->nanos_cycle / 1000000.0f);
-    ImGui::Text("Cycle rate %fHz",1/((float)ki.shmem->nanos_cycle / 1000000000.0f));
+    ImGui::Text("Cycle time %fms", (float)ki.shmem->nanos_cycle / 1000000.0f);
+    ImGui::Text("Cycle rate %fHz",
+                1 / ((float)ki.shmem->nanos_cycle / 1000000000.0f));
 
     if (ImGui::BeginPopupContextWindow()) {
       if (ImGui::MenuItem("Custom", NULL, location == -1))
@@ -73,9 +70,7 @@ void renderFPSbox(kernelInterface& ki, float frametime, int fps){
   ImGui::End();
 }
 
-void renderOverlay(kernelInterface& ki) {
-
-
+void renderOverlay(kernelInterface &ki) {
   ImGui::Begin("INTERFACE TOOLS", &my_tool_active, ImGuiWindowFlags_MenuBar);
   if (ImGui::BeginMenuBar()) {
     if (ImGui::BeginMenu("TOOLS")) {
@@ -116,14 +111,41 @@ void renderOverlay(kernelInterface& ki) {
 
   ImGui::EndChild();
   ImGui::End();
-
-
 }
 
-void showTexture(void* texture, int width, int height){
+void showTexture(void *texture, int width, int height) {
   ImGui::Begin("OpenGL Texture Text");
   ImGui::Text("pointer = %p", texture);
   ImGui::Text("size = %d x %d", width, height);
-  ImGui::Image((void*)(intptr_t)texture, ImVec2(width, height));
+  ImGui::Image((void *)(intptr_t)texture, ImVec2(width, height));
+  ImGui::End();
+}
+
+void renderOSDOverlay(osdRenderer osd) {
+  ImGui::Begin("OSD overlay");
+  std::vector<std::string> fonts = osd.getOSDFonts();
+
+  ImGui::BeginListBox("##listbox 1");
+  for (int n = 0; n < fonts.size(); n++) {
+    // const bool is_selected = (fonts[n] == osd.osdFontName);
+    const bool is_selected = false;
+    if (ImGui::Selectable(fonts[n].c_str(), is_selected)) {
+
+      osd.changeOSDFont(fonts[n]);
+
+      // pause();
+    }
+    if (is_selected) {
+
+      ImGui::SetItemDefaultFocus();
+    }
+
+    // item_current_idx = n;
+
+    // Set the initial focus when opening the combo (scrolling + keyboard
+    // navigation focus)
+  }
+  ImGui::EndListBox();
+
   ImGui::End();
 }

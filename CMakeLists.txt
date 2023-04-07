@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.24)
 project(test)
 
 set(CMAKE_CXX_STANDARD 17)
+# add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=0) 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
 
@@ -11,7 +12,7 @@ add_subdirectory(libraries/imgui/)
 
 
 
-add_executable(test main.cpp utils/loadmcm.cpp kernelinterface.cpp overlay/overlay.cpp preferences.cpp)
+add_executable(test main.cpp utils/loadmcm.cpp kernelinterface.cpp overlay/overlay.cpp preferences.cpp renderers/osd.cpp)
 
 
 find_package(GLEW REQUIRED)
