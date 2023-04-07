@@ -9,7 +9,7 @@ add_subdirectory(libraries/glad/)
 add_subdirectory(libraries/imgui/)
 
 
-add_executable(test main.cpp utils/loadmcm.cpp kernelinterface.cpp)
+add_executable(test main.cpp utils/loadmcm.cpp kernelinterface.cpp overlay/overlay.cpp preferences.cpp)
 
 
 

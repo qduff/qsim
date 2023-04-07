@@ -1,30 +1,33 @@
 #pragma once
 
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/process.hpp>
+#include "memdef.h"
+
+#include <cstddef>
+#include <string>
 
 #define CHARS_PER_LINE 30
 #define VIDEO_LINES 16
 
 class kernelInterface {
 private:
-  boost::interprocess::managed_shared_memory shm;
-  // boost::process::ipstream out;
-  boost::process::child c;
-  std::string memname;
+  void* allocateMemory(std::string name);
+  bool spawnChild(std::string memname, std::string path);
+
+
 
 public:
   kernelInterface();
   ~kernelInterface();
 
-  uint8_t *osdpnt;
-  float *rcpnt;
+  pid_t pid;
+  memory_s *shmem;
 
   void writeAxes(const float *axes, int count);
   void debugOsdPrint();
 
   bool start();
-  bool isRunning();
+  bool isRunning;
+  int wstatus;
 
   //
 };

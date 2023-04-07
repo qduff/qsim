@@ -1,41 +1,130 @@
 #include "kernelinterface.hpp"
+#include "memdef.h"
 #include <cassert>
+#include <csignal>
 #include <cstdint>
+#include <cstring>
+#include <iostream>
+#include <sys/ucontext.h>
+#include <sys/wait.h>
+#include <string.h>
 
-kernelInterface::~kernelInterface() {}
+#ifdef __linux__ 
+#include <sys/mman.h>
+#include <cstdio>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <spawn.h>
+
+#elif _WIN32
+#else
+#error unsupported!
+#endif
+
+int size = sizeof(memory_s);
+
+
+kernelInterface::~kernelInterface() {
+  kill(pid,SIGSEGV);
+  int res = munmap(shmem, size);
+	if (res == -1)
+	{
+		perror("munmap");
+	}
+	int fd = shm_unlink("name");
+	if (fd == -1)
+	{
+		perror("unlink");
+	}
+  
+}
 
 kernelInterface::kernelInterface() {
-  std::string memname = "shrdx";
 
-  boost::interprocess::shared_memory_object::remove(memname.c_str());
-  shm = {boost::interprocess::create_only, memname.c_str(), 65535};
-
-  osdpnt = shm.construct<uint8_t>("osdpnt")[VIDEO_LINES * CHARS_PER_LINE](' ');
-  rcpnt = shm.construct<float>("rcpnt")[8](0);
 }
 
-bool kernelInterface::isRunning() { return c.running(); }
+// private
+
+
+void* kernelInterface::allocateMemory(std::string name){
+  
+
+  	int fd = shm_open(name.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+    if (fd == -1)
+    {
+      perror("openm");
+      return NULL;
+    }
+
+    // extend shared memory object as by default it's initialized with size 0
+    int res = ftruncate(fd, size);
+    if (res == -1)
+    {
+      perror("ftruncate");
+      return NULL;
+    }
+
+    // map shared memory to process address space
+    shmem = (memory_s*)mmap(NULL, size, PROT_WRITE, MAP_SHARED, fd, 0);
+    *shmem = memory_s{};
+    shmem->parentVersion[0] = 0;
+    shmem->parentVersion[1] = 0;
+    shmem->parentVersion[2] = 2;
+
+    if (shmem->schemaVersion[0]!=0){
+      fprintf(stderr, "UNSUPOROTED VER!");
+      exit(-1);
+    }
+
+    if (shmem == MAP_FAILED)
+    {
+      perror("mmap");
+      return NULL;
+    }
+
+  return shmem;
+}
+
+
+bool kernelInterface::spawnChild(std::string memname, std::string path){
+    char *argv[] = {&path[0], &memname[0], NULL};
+    int status;
+    printf("spawn: %s %s\n", &path[0], &memname[0]);
+    status = posix_spawn(&pid, &path[0], NULL, NULL, argv, environ);
+    return true;
+}
+
+// public
+
 
 bool kernelInterface::start() {
-  c = boost::process::child(
-      "/home/qduff/Documents/quad_sim_stuff/sim_kernel/build/sim_kernel");
-  // boost::process::std_out > out);
 
-  printf("started!\n");
-  if (!c.running()) {
-    printf("notrun!\n");
-    return false;
-  }
-  return true;
+  std::string memname = "name";
+  allocateMemory(memname);
+  
+  std::string path("/home/qduff/Documents/quad_sim_stuff/sim_kernel/build/sim_kernel");
+  isRunning =  spawnChild(memname, path);
+  return isRunning;
+
 }
+
+
 
 void kernelInterface::writeAxes(const float *axes, int count) {
-  assert(count < 8);
+  // assert(count < 8);
+  #ifdef cpy
+    memcpy(shmem->rc,axes,16);
+  #else
   for (int i = 0; i < count; ++i) {
-    *(rcpnt + i) = axes[i];
-    // printf("axis %i :  %f\n", i, *(rcpnt + i));
+    shmem->rc[i] = axes[i];
+    printf("axis %i :  %f\n", i, axes[i]);
   }
+  #endif
 }
+
+
 
 void kernelInterface::debugOsdPrint() {
   printf("\033[H\033[J");
@@ -43,10 +132,10 @@ void kernelInterface::debugOsdPrint() {
     if (i % CHARS_PER_LINE == 0) {
       printf("\n");
     }
-    if (*(osdpnt + i) == 0) {
+    if (shmem->osd[i] == 0) {
       printf(" ");
     } else {
-      printf("%c", *(osdpnt + i));
+      printf("%c", shmem->osd[i]);
     }
   }
   puts("\n------------------------------");

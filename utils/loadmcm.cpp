@@ -30,7 +30,7 @@ unsigned char *loadMCM(char const *fpath, int &ret_texwidth,
   static unsigned char *image =
       new unsigned char[charWidth * charHeight * numChars * bitdepth];
 
-  std::ifstream is(fpath);
+  std::ifstream is(fpath);  
   std::string byte;
   std::string crumb;
 
