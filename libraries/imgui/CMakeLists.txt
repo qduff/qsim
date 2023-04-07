@@ -5,4 +5,4 @@ file(GLOB_RECURSE headers "*.h")
 file(GLOB_RECURSE sources "*.cpp")
 
 add_library(imgui ${headers} ${sources})
-target_include_directories(glad PUBLIC ${headers})
+target_include_directories(imgui PUBLIC ${headers})

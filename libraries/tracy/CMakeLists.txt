@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.0)
+project(tracy)
+add_compile_definitions(TRACY_ENABLE)
+add_library(tracy TracyClient.cpp)
+target_include_directories(tracy PUBLIC tracy/ client/ common/ .)

@@ -5,6 +5,11 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#define TRACY_ENABLE
+// #define TRACY_NO_FRAME_IMAGE
+#include "Tracy.hpp"
+#include "TracyOpenGL.hpp"
+
 
 #include "libraries/imgui/imgui.h"
 #include "libraries/imgui/imgui_impl_glfw.h"
@@ -68,6 +73,8 @@ int main() {
     return -1;
   }
 
+  TracyGpuContext;
+
   // configure imgui
 
   IMGUI_CHECKVERSION();
@@ -90,7 +97,7 @@ int main() {
 
   // build and compile our shader zprogram
   // ------------------------------------
-  Shader ourShader("../shaders/shader.vert", "../shaders/shader.frag");
+  Shader ourShader("../shaders/osd.vert", "../shaders/osd.frag");
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
@@ -162,7 +169,7 @@ int main() {
 
 
 
-
+  puts("test");
 
 
   // render loop
@@ -173,7 +180,7 @@ int main() {
   int fps = 0;
 
   // GAME LOOP
-
+  TracyMessageL("Starting Game Loop");
   while (!glfwWindowShouldClose(window)) {
     // input
     // -----
@@ -188,6 +195,10 @@ int main() {
 
     // render
     // ------
+
+    // ZoneScopedN("render");
+
+
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -218,11 +229,14 @@ int main() {
 
     renderOverlay(ki);
     renderFPSbox(ki, frametime, fps);
-  ImGui::Render();
+    ImGui::Render();
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     glfwSwapBuffers(window);
+    FrameMark;
+    TracyGpuCollect;
+
 
     glfwPollEvents();
   }

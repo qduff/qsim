@@ -1,11 +1,13 @@
 
 #include "../memdef.h"
 #include "../shader.hpp"
+#include "TracyOpenGL.hpp"
 #include <glad/glad.h>
 
 
 void renderOSD(Shader &s, memory_s *shmem, unsigned int texture,
                unsigned int VAO, unsigned int VBO) {
+  TracyGpuZone("OSD Render");
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBindTexture(GL_TEXTURE_2D, texture);
   s.use();
