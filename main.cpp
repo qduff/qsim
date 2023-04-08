@@ -11,6 +11,7 @@
 #include "TracyOpenGL.hpp"
 
 
+
 #include "libraries/imgui/imgui.h"
 #include "libraries/imgui/imgui_impl_glfw.h"
 #include "libraries/imgui/imgui_impl_opengl3.h"
@@ -39,7 +40,6 @@ const unsigned int SCR_HEIGHT = 600;
 
 kernelInterface ki;
 
-
 int main() {
 
   glfwInit();
@@ -62,8 +62,7 @@ int main() {
   }
   glfwMakeContextCurrent(window);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-  glfwSwapInterval(1); //!vsucnyt=1
-  
+  glfwSwapInterval(0); //! vsucnyt=1
 
   // glad: load all OpenGL function pointers
   // ---------------------------------------
@@ -121,52 +120,68 @@ int main() {
     // render
     // ------
 
-    // ZoneScopedN("render");
+    ZoneScopedN("render");
+    TracyGpuZone("main?")
 
+    {
+      ZoneScopedN("Imguinewframe");
+      ImGui_ImplOpenGL3_NewFrame();
+      ImGui_ImplGlfw_NewFrame();
+      ImGui::NewFrame();
+    }
 
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
+    {
+      ZoneScopedN("Clear");
+      glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+      glClear(GL_COLOR_BUFFER_BIT);
+    }
 
+    {
+      ZoneScopedN("renderOSD");
+      osd.renderOSDStupidly(ki.shmem);
+    }
 
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-  
-
-    
-
-    osd.renderOSD(ki.shmem);
-    
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse
     // moved etc.)
     // -------------------------------------------------------------------------------
 
-    frametime = glfwGetTime() - curtime;
-    curtime = glfwGetTime();
-    if (curtime - lasttime >= 1) {
-      // printf("%f ms/frame\n", 1000.0 / double(frameslasts));
-      // printf("frames: %i\n", frameslasts);
-      fps = frameslasts;
-      frameslasts = 0;
-      lasttime = curtime;
-    } else {
-      frameslasts += 1;
+    {
+      ZoneScopedN("calctimes");
+
+      frametime = glfwGetTime() - curtime;
+      curtime = glfwGetTime();
+      if (curtime - lasttime >= 1) {
+        // printf("%f ms/frame\n", 1000.0 / double(frameslasts));
+        // printf("frames: %i\n", frameslasts);
+        fps = frameslasts;
+        frameslasts = 0;
+        lasttime = curtime;
+      } else {
+        frameslasts += 1;
+      }
     }
 
-    renderOverlay(ki);
-    renderFPSbox(ki, frametime, fps);
+    {
+      ZoneScopedN("overlays draw");
+      renderOverlay(ki);
+      renderFPSbox(ki, frametime, fps);
+      renderOSDOverlay(osd);
+      ImGui::Render();
+      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    }
 
-    renderOSDOverlay(osd);
-    ImGui::Render();
+    {
+      ZoneScopedN("swapbuffer");
+      glfwSwapBuffers(window);
+    }
 
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    glfwSwapBuffers(window);
     FrameMark;
     TracyGpuCollect;
 
-
-    glfwPollEvents();
+    {
+      ZoneScopedN("polling");
+      glfwPollEvents();
+    }
   }
 
   // optional: de-allocate all resources once they've outlived their purpose:

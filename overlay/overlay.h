@@ -11,4 +11,4 @@
 void renderOverlay(kernelInterface &ki);
 void renderFPSbox(kernelInterface &ki, float frametime, int fps);
 void showTexture(void *texture, int width, int height);
-void renderOSDOverlay(osdRenderer osd);
+void renderOSDOverlay(osdRenderer &osd);

@@ -121,29 +121,15 @@ void showTexture(void *texture, int width, int height) {
   ImGui::End();
 }
 
-void renderOSDOverlay(osdRenderer osd) {
+void renderOSDOverlay(osdRenderer &osd) {
   ImGui::Begin("OSD overlay");
   std::vector<std::string> fonts = osd.getOSDFonts();
 
   ImGui::BeginListBox("##listbox 1");
   for (int n = 0; n < fonts.size(); n++) {
-    // const bool is_selected = (fonts[n] == osd.osdFontName);
-    const bool is_selected = false;
-    if (ImGui::Selectable(fonts[n].c_str(), is_selected)) {
-
+    if (ImGui::Selectable(fonts[n].c_str(), false)) {
       osd.changeOSDFont(fonts[n]);
-
-      // pause();
     }
-    if (is_selected) {
-
-      ImGui::SetItemDefaultFocus();
-    }
-
-    // item_current_idx = n;
-
-    // Set the initial focus when opening the combo (scrolling + keyboard
-    // navigation focus)
   }
   ImGui::EndListBox();
 
