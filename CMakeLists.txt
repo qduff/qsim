@@ -10,6 +10,8 @@ add_subdirectory(libraries/glad/)
 add_subdirectory(libraries/tracy/)
 add_subdirectory(libraries/imgui/)
 
+add_definitions(-DTRACY_ENABLE)
+
 
 
 add_executable(test main.cpp utils/loadmcm.cpp kernelinterface.cpp overlay/overlay.cpp preferences.cpp renderers/osd.cpp)

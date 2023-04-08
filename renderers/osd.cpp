@@ -1,5 +1,4 @@
 #include "osd.h"
-#define TRACY_ENABLE
 #include "Tracy.hpp"
 #include <filesystem>
 #include <string>
@@ -7,9 +6,9 @@
 
 osdRenderer::~osdRenderer() {
   puts("destructing!");
-    glDeleteVertexArrays(1, &VAO_osd);
-    glDeleteBuffers(1, &VBO_osd);
-    glDeleteBuffers(1, &EBO_osd);
+  glDeleteVertexArrays(1, &VAO_osd);
+  glDeleteBuffers(1, &VBO_osd);
+  glDeleteBuffers(1, &EBO_osd);
 }
 
 osdRenderer::osdRenderer(std::string fontname) {
@@ -35,11 +34,11 @@ osdRenderer::osdRenderer(std::string fontname) {
   glEnableVertexAttribArray(1);
 
   glGenTextures(1, &OSDTEX_osd);
+
   loadTex(fontname);
 };
 
 void osdRenderer::loadTex(std::string fontName) {
-
   glBindTexture(GL_TEXTURE_2D, OSDTEX_osd);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -71,66 +70,63 @@ void osdRenderer::changeOSDFont(std::string fname) {
   //! CHANGE TEX
 }
 
-void osdRenderer::renderOSD(memory_s *shmem) {
-  TracyGpuZone("OSD Render");
-  glBindBuffer(GL_ARRAY_BUFFER, VBO_osd);
-  glActiveTexture(GL_TEXTURE0 + 0);
-  glBindTexture(GL_TEXTURE_2D, OSDTEX_osd);
-  osdShader.use();
-  osdShader.setInt("ourTexture", 0);
-
-
-
-}
+void osdRenderer::renderOSD(memory_s *shmem) { renderOSDStupidly(shmem); }
 
 void osdRenderer::renderOSDStupidly(memory_s *shmem) {
-  TracyGpuZone("OSD Render");
+  ZoneScoped;
   glBindBuffer(GL_ARRAY_BUFFER, VBO_osd);
   glActiveTexture(GL_TEXTURE0 + 0);
   glBindTexture(GL_TEXTURE_2D, OSDTEX_osd);
+  glBufferData(GL_ARRAY_BUFFER, 80, NULL, GL_DYNAMIC_DRAW);
   osdShader.use();
   osdShader.setInt("ourTexture", 0);
   {
-    ZoneScopedN("renderbody");
     const int width = 30;
     const int height = 16;
     for (char y = 0; y < 16; ++y) { //
       for (char x = 0; x < 30; ++x) {
+        ZoneScopedN("drawChar");
 
-          unsigned char curchar = shmem->osd[(15 - y) * width + x];
+        unsigned char curchar = shmem->osd[(15 - y) * width + x];
 // if (x == 0 || y == 0 || x == width - 1 || y == height - 1) {
 //   curchar = 222; // asterisk
 // }
 // curchar = y * width + x;
 #ifdef printchars
-printf("x%iy%i - %c \n", x, y, curchar);
+        printf("x%iy%i - %c \n", x, y, curchar);
 #endif
+#define dbgonosd 
 #ifdef dbgonosd
-          curchar = "DEBUG"[(y * width + x) % 5];
+        curchar = "DEBUG"[(y * width + x) % 5];
 #endif
-          // find way of doing this stuff in shader, so only must be buffered once!
+        // find way of doing this stuff in shader, so only must be buffered
+        // once!
 
-          float tex_xl = (float)curchar / 256;
-          float tex_xr = ((float)curchar + 1) / 256;
+        float tex_xl = (float)curchar / 256;
+        float tex_xr = ((float)curchar + 1) / 256;
 
-          float ryu = -1 + 2 * ((float)(y) / height);
-          float ryd = -1 + 2 * ((float)(y + 1) / height);
-          float rxl = -1 + 2 * ((float)(x) / width);
-          float rxr = -1 + 2 * ((float)(x + 1) / width);
-          // printf("y:%f -> %f", ryd, ryu);
-          //* it is important to note that these have to be rendered
-          //* flipped in the Y-AXIS
-          float vertices[] = {
-              rxr, ryu, 0.0f, tex_xr, 1.0f, // top right
-              rxr, ryd, 0.0f, tex_xr, 0.0f, // bottom right
-              rxl, ryd, 0.0f, tex_xl, 0.0f, // bottom left
-              rxl, ryu, 0.0f, tex_xl, 1.0f  // top left
-          };
-            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
-                         GL_DYNAMIC_DRAW);
-          glBindVertexArray(VAO_osd);
-          glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        
+        float ryu = -1 + 2 * ((float)(y) / height);
+        float ryd = -1 + 2 * ((float)(y + 1) / height);
+        float rxl = -1 + 2 * ((float)(x) / width);
+        float rxr = -1 + 2 * ((float)(x + 1) / width);
+        // printf("y:%f -> %f", ryd, ryu);
+        //* it is important to note that these have to be rendered
+        //* flipped in the Y-AXIS
+        float vertices[] = {
+            rxr, ryu, 0.0f, tex_xr, 1.0f, // top right
+            rxr, ryd, 0.0f, tex_xr, 0.0f, // bottom right
+            rxl, ryd, 0.0f, tex_xl, 0.0f, // bottom left
+            rxl, ryu, 0.0f, tex_xl, 1.0f  // top left
+        };
+        // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
+        //  GL_DYNAMIC_DRAW);
+        {
+          ZoneScopedN("buffersub");
+          // glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+        }
+
+        glBindVertexArray(VAO_osd);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
       }
     }
   }

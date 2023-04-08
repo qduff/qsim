@@ -61,6 +61,7 @@ int main() {
     return -1;
   }
   glfwMakeContextCurrent(window);
+
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSwapInterval(0); //! vsucnyt=1
 
@@ -70,7 +71,6 @@ int main() {
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
   }
-
   TracyGpuContext;
 
   // configure imgui
@@ -136,10 +136,7 @@ int main() {
       glClear(GL_COLOR_BUFFER_BIT);
     }
 
-    {
-      ZoneScopedN("renderOSD");
-      osd.renderOSDStupidly(ki.shmem);
-    }
+    osd.renderOSD(ki.shmem);
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse
     // moved etc.)
@@ -166,8 +163,12 @@ int main() {
       renderOverlay(ki);
       renderFPSbox(ki, frametime, fps);
       renderOSDOverlay(osd);
-      ImGui::Render();
-      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+      {
+        ZoneScopedN("overlays render");
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+      }
     }
 
     {

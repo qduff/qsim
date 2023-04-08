@@ -1,10 +1,13 @@
 #include "overlay.h"
+#define TRACY_ENABLE
+#include "Tracy.hpp"
 #include <istream>
 #include <vector>
 
 bool my_tool_active;
 
 void renderFPSbox(kernelInterface &ki, float frametime, int fps) {
+  ZoneScoped;
   static int location = 0;
   ImGuiIO &io = ImGui::GetIO();
   ImGuiWindowFlags window_flags =
@@ -71,6 +74,7 @@ void renderFPSbox(kernelInterface &ki, float frametime, int fps) {
 }
 
 void renderOverlay(kernelInterface &ki) {
+  ZoneScoped;
   ImGui::Begin("INTERFACE TOOLS", &my_tool_active, ImGuiWindowFlags_MenuBar);
   if (ImGui::BeginMenuBar()) {
     if (ImGui::BeginMenu("TOOLS")) {
@@ -122,6 +126,7 @@ void showTexture(void *texture, int width, int height) {
 }
 
 void renderOSDOverlay(osdRenderer &osd) {
+  ZoneScoped;
   ImGui::Begin("OSD overlay");
   std::vector<std::string> fonts = osd.getOSDFonts();
 
