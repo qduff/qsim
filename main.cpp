@@ -159,12 +159,12 @@ int main() {
     }
 
     {
-      ZoneScopedN("overlays draw");
+      ZoneScopedN("IMGUI Overlay:");
       renderOverlay(ki);
       renderFPSbox(ki, frametime, fps);
       renderOSDOverlay(osd);
       {
-        ZoneScopedN("overlays render");
+        ZoneScopedN("RENDER OVERLAY");
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

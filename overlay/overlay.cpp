@@ -128,7 +128,9 @@ void showTexture(void *texture, int width, int height) {
 void renderOSDOverlay(osdRenderer &osd) {
   ZoneScoped;
   ImGui::Begin("OSD overlay");
-  std::vector<std::string> fonts = osd.getOSDFonts();
+
+      std::vector<std::string> fonts = osd.getOSDFonts();
+
 
   ImGui::BeginListBox("##listbox 1");
   for (int n = 0; n < fonts.size(); n++) {

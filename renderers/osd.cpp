@@ -20,7 +20,8 @@ osdRenderer::osdRenderer(std::string fontname) {
   glBindVertexArray(VAO_osd);
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO_osd);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(float), NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, 80, NULL, GL_DYNAMIC_DRAW);
+
   unsigned int indices[] = {0, 1, 3, 1, 2, 3};
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_osd);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
@@ -70,45 +71,48 @@ void osdRenderer::changeOSDFont(std::string fname) {
   //! CHANGE TEX
 }
 
-void osdRenderer::renderOSD(memory_s *shmem) { renderOSDStupidly(shmem); }
+void osdRenderer::renderOSD(memory_s *shmem) {
+  renderOSDStupidly(shmem);
+}
+
+  float tex_xl,tex_xr,ryu,ryd,rxl,rxr; // removeme
+
 
 void osdRenderer::renderOSDStupidly(memory_s *shmem) {
   ZoneScoped;
-  glBindBuffer(GL_ARRAY_BUFFER, VBO_osd);
-  glActiveTexture(GL_TEXTURE0 + 0);
-  glBindTexture(GL_TEXTURE_2D, OSDTEX_osd);
-  glBufferData(GL_ARRAY_BUFFER, 80, NULL, GL_DYNAMIC_DRAW);
-  osdShader.use();
-  osdShader.setInt("ourTexture", 0);
+
+  {
+    ZoneScopedN("Initialize");
+    glBindVertexArray(VAO_osd);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_osd);
+    glActiveTexture(GL_TEXTURE0 + 0);
+    glBindTexture(GL_TEXTURE_2D, OSDTEX_osd);
+    osdShader.use();
+  
+  }
+
+  // osdShader.setInt("ourTexture", 0);
   {
     const int width = 30;
     const int height = 16;
     for (char y = 0; y < 16; ++y) { //
       for (char x = 0; x < 30; ++x) {
-        ZoneScopedN("drawChar");
-
         unsigned char curchar = shmem->osd[(15 - y) * width + x];
-// if (x == 0 || y == 0 || x == width - 1 || y == height - 1) {
-//   curchar = 222; // asterisk
-// }
-// curchar = y * width + x;
-#ifdef printchars
-        printf("x%iy%i - %c \n", x, y, curchar);
-#endif
-#define dbgonosd 
-#ifdef dbgonosd
-        curchar = "DEBUG"[(y * width + x) % 5];
-#endif
-        // find way of doing this stuff in shader, so only must be buffered
-        // once!
+        if (curchar == 0 || curchar==32) { // no need to render if 0 or null!
+          continue;
+        }
+        ZoneScopedN("inloop draw");
+        ZoneValue(curchar);
+        // printf("x%iy%i - %c \n", x, y, curchar);
+        // curchar = "DEBUG"[(y * width + x) % 5];
 
-        float tex_xl = (float)curchar / 256;
-        float tex_xr = ((float)curchar + 1) / 256;
+         tex_xl = (float)curchar / 256;
+         tex_xr = ((float)curchar + 1) / 256;
 
-        float ryu = -1 + 2 * ((float)(y) / height);
-        float ryd = -1 + 2 * ((float)(y + 1) / height);
-        float rxl = -1 + 2 * ((float)(x) / width);
-        float rxr = -1 + 2 * ((float)(x + 1) / width);
+         ryu = -1 + 2 * ((float)(y) / height);
+         ryd = -1 + 2 * ((float)(y + 1) / height);
+         rxl = -1 + 2 * ((float)(x) / width);
+         rxr = -1 + 2 * ((float)(x + 1) / width);
         // printf("y:%f -> %f", ryd, ryu);
         //* it is important to note that these have to be rendered
         //* flipped in the Y-AXIS
@@ -121,12 +125,13 @@ void osdRenderer::renderOSDStupidly(memory_s *shmem) {
         // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
         //  GL_DYNAMIC_DRAW);
         {
-          ZoneScopedN("buffersub");
-          // glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+          ZoneScopedN("glBufferSubData");
+          glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
         }
-
-        glBindVertexArray(VAO_osd);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        {
+          ZoneScopedN("glDrawElements");
+          glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        }
       }
     }
   }
