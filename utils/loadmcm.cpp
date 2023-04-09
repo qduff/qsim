@@ -26,7 +26,6 @@ struct color_s transp = color_s{0b11111111, 0b11111111, 0b11111111, 0b00000000};
 // You should free the image memory after loading it into the GPU!
 unsigned char *loadMCM(char const *fpath, int &ret_texwidth,
                        int &ret_texheight) {
-
   static unsigned char *image =
       new unsigned char[charWidth * charHeight * numChars * bitdepth];
 

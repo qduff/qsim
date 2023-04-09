@@ -9,6 +9,7 @@ osdRenderer::~osdRenderer() {
   glDeleteVertexArrays(1, &VAO_osd);
   glDeleteBuffers(1, &VBO_osd);
   glDeleteBuffers(1, &EBO_osd);
+  glDeleteTextures(1,&OSDTEX_osd);
 }
 
 osdRenderer::osdRenderer(std::string fontname) {
@@ -106,9 +107,11 @@ void osdRenderer::renderOSDStupidly(memory_s *shmem) {
         // printf("x%iy%i - %c \n", x, y, curchar);
         // curchar = "DEBUG"[(y * width + x) % 5];
 
+          // SELECTS THE CHARACTER WE WANT
          tex_xl = (float)curchar / 256;
          tex_xr = ((float)curchar + 1) / 256;
 
+        // SELECTS THE RENDERING LOCATION
          ryu = -1 + 2 * ((float)(y) / height);
          ryd = -1 + 2 * ((float)(y + 1) / height);
          rxl = -1 + 2 * ((float)(x) / width);
@@ -117,6 +120,8 @@ void osdRenderer::renderOSDStupidly(memory_s *shmem) {
         //* it is important to note that these have to be rendered
         //* flipped in the Y-AXIS
         float vertices[] = {
+
+          // apos(3), texcoord(2)
             rxr, ryu, 0.0f, tex_xr, 1.0f, // top right
             rxr, ryd, 0.0f, tex_xr, 0.0f, // bottom right
             rxl, ryd, 0.0f, tex_xl, 0.0f, // bottom left

@@ -5,10 +5,21 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#define TRACY_ENABLE
 // #define TRACY_NO_FRAME_IMAGE
 #include "Tracy.hpp"
 #include "TracyOpenGL.hpp"
+void* operator new(std :: size_t count)
+{
+auto ptr = malloc(count);
+// TracyAlloc (ptr , count);
+TracyAllocS(ptr, count, 5);
+return ptr;
+}
+void operator delete(void* ptr) noexcept
+{
+TracyFreeS(ptr,5);
+free(ptr);
+}
 
 
 
