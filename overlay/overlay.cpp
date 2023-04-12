@@ -132,13 +132,15 @@ void renderOSDOverlay(osdRenderer &osd) {
       std::vector<std::string> fonts = osd.getOSDFonts();
 
 
-  ImGui::BeginListBox("##listbox 1");
-  for (int n = 0; n < fonts.size(); n++) {
+  if (ImGui::BeginListBox("##listbox 1")){
+for (int n = 0; n < fonts.size(); n++) {
     if (ImGui::Selectable(fonts[n].c_str(), false)) {
       osd.changeOSDFont(fonts[n]);
     }
   }
   ImGui::EndListBox();
+  }
+  
 
   ImGui::End();
 }

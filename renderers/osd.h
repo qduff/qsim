@@ -26,7 +26,7 @@ public:
 
   std::vector<std::string> getOSDFonts();
   void changeOSDFont(std::string fontname);
-  void renderOSD(memory_s *shmem);
-    void renderOSDStupidly(memory_s *shmem);
+  void renderOSD(memory_s *shmem, int width, int height);
+    void renderOSDStupidly(memory_s *shmem, int width, int height);
 
 };

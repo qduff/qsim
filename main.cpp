@@ -37,6 +37,10 @@ free(ptr);
 #include "shader.hpp"
 
 #include "renderers/osd.h"
+#include "renderers/scene.h"
+
+
+#include "logger/logger.hpp"
 
 #include <iostream>
 #include <sys/wait.h>
@@ -46,12 +50,17 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+unsigned int SCR_WIDTH = 800;
+unsigned int SCR_HEIGHT = 600;
 
 kernelInterface ki;
 
 int main() {
+
+  Logger& logger = Logger::getLogger();
+  logger.prioritylevel = 0;
+  logger.Log(Logger::INFO,  "Starting");
+  logger.Log(Logger::INFO, "Width = %d, Height = %d\n", SCR_WIDTH, SCR_HEIGHT);
 
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -97,8 +106,8 @@ int main() {
   ImGui_ImplOpenGL3_Init("#version 330");
   bool my_tool_active = true;
 
-  bool i = ki.start();
 
+  bool i = ki.start();
   printf("start:%d\n", i);
   if (i != true) {
     return -1;
@@ -106,6 +115,9 @@ int main() {
 
   // osd.initializeOSD(); // could be wrapped into constructor!
   osdRenderer osd("extra_large");
+  
+
+  sceneRenderer scene;
 
   // render loop
   // -----------
@@ -113,6 +125,9 @@ int main() {
   double frametime = 0;
   int frameslasts = 0;
   int fps = 0;
+
+  glEnable(GL_DEPTH_TEST);
+
 
   // GAME LOOP
   TracyMessageL("Starting Game Loop");
@@ -144,10 +159,11 @@ int main() {
     {
       ZoneScopedN("Clear");
       glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-      glClear(GL_COLOR_BUFFER_BIT);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    osd.renderOSD(ki.shmem);
+    scene.render(SCR_WIDTH, SCR_HEIGHT);
+    osd.renderOSD(ki.shmem, SCR_WIDTH, SCR_HEIGHT);
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse
     // moved etc.)
@@ -194,6 +210,7 @@ int main() {
       ZoneScopedN("polling");
       glfwPollEvents();
     }
+
   }
 
   // optional: de-allocate all resources once they've outlived their purpose:
@@ -214,7 +231,9 @@ void processInput(GLFWwindow *window) {
   if (glfwJoystickPresent(GLFW_JOYSTICK_1)) {
     int count;
     const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
+    // glfwGetJoystickName(GLFW_JOYSTICK_1);
     ki.writeAxes(axes, count);
+
   }
 }
 
@@ -225,5 +244,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   // make sure the viewport matches the new window dimensions; note that width
   // and height will be significantly larger than specified on retina
   // displays.
+  SCR_WIDTH = width;
+  SCR_HEIGHT = height;
   glViewport(0, 0, width, height);
 }

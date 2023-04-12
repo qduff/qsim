@@ -72,15 +72,25 @@ void osdRenderer::changeOSDFont(std::string fname) {
   //! CHANGE TEX
 }
 
-void osdRenderer::renderOSD(memory_s *shmem) {
-  renderOSDStupidly(shmem);
+void osdRenderer::renderOSD(memory_s *shmem, int width, int height) {
+  renderOSDStupidly(shmem, width, height);
 }
 
   float tex_xl,tex_xr,ryu,ryd,rxl,rxr; // removeme
 
 
-void osdRenderer::renderOSDStupidly(memory_s *shmem) {
+void osdRenderer::renderOSDStupidly(memory_s *shmem, int width, int height) {
   ZoneScoped;
+  // height = 288, width = 360
+  float scale = ((float)height/(float)width)/(288.0f/360.0f);
+  float wscale = 1;
+  float hscale = 1;
+  if (scale < 1){
+    wscale = scale;
+  }else{
+    hscale = 1/scale;
+  }
+
 
   {
     ZoneScopedN("Initialize");
@@ -93,29 +103,32 @@ void osdRenderer::renderOSDStupidly(memory_s *shmem) {
   }
 
   // osdShader.setInt("ourTexture", 0);
+
+
   {
     const int width = 30;
     const int height = 16;
     for (char y = 0; y < 16; ++y) { //
       for (char x = 0; x < 30; ++x) {
         unsigned char curchar = shmem->osd[(15 - y) * width + x];
+        // curchar = "DEBUG"[(y * width + x) % 5];
         if (curchar == 0 || curchar==32) { // no need to render if 0 or null!
           continue;
         }
         ZoneScopedN("inloop draw");
         ZoneValue(curchar);
         // printf("x%iy%i - %c \n", x, y, curchar);
-        // curchar = "DEBUG"[(y * width + x) % 5];
+        // 
 
           // SELECTS THE CHARACTER WE WANT
          tex_xl = (float)curchar / 256;
          tex_xr = ((float)curchar + 1) / 256;
 
         // SELECTS THE RENDERING LOCATION
-         ryu = -1 + 2 * ((float)(y) / height);
-         ryd = -1 + 2 * ((float)(y + 1) / height);
-         rxl = -1 + 2 * ((float)(x) / width);
-         rxr = -1 + 2 * ((float)(x + 1) / width);
+         ryu = (-1 + 2 * ((float)(y) / height))*hscale;
+         ryd = (-1 + 2 * ((float)(y + 1) / height))*hscale;
+         rxl = (-1 + 2 * ((float)(x) / width))*wscale;
+         rxr = (-1 + 2 * ((float)(x + 1) / width))*wscale;
         // printf("y:%f -> %f", ryd, ryu);
         //* it is important to note that these have to be rendered
         //* flipped in the Y-AXIS
@@ -125,7 +138,7 @@ void osdRenderer::renderOSDStupidly(memory_s *shmem) {
             rxr, ryu, 0.0f, tex_xr, 1.0f, // top right
             rxr, ryd, 0.0f, tex_xr, 0.0f, // bottom right
             rxl, ryd, 0.0f, tex_xl, 0.0f, // bottom left
-            rxl, ryu, 0.0f, tex_xl, 1.0f  // top left
+            rxl, ryu, 0.0f, tex_xl, 1.0f,  // top left
         };
         // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
         //  GL_DYNAMIC_DRAW);
