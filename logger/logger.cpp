@@ -2,6 +2,12 @@
 #include <iostream>
 #include <vector>
 
+#ifdef __MINGW32__
+#include <stdarg.h>
+#endif
+
+
+
 Logger &Logger::getLogger() {
   static Logger logger;
   return logger;
@@ -21,8 +27,7 @@ void Logger::Log(Logger::priority priority, std::string format, ...) {
 
     std::vfprintf(stdout, zcFormat, vaArgs);
     va_end(vaArgs);
-    
+
     // https://stackoverflow.com/questions/19009094/c-variable-arguments-with-stdstring-only
   }
 }
-

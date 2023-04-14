@@ -2,7 +2,7 @@
 
 #include "memdef.h"
 
-#include <cstddef>
+// #include <cstddef>
 #include <string>
 
 #define CHARS_PER_LINE 30
@@ -19,7 +19,7 @@ public:
   kernelInterface();
   ~kernelInterface();
 
-  pid_t pid;
+  int pid;
   memory_s *shmem;
 
   void writeAxes(const float *axes, int count);

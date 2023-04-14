@@ -1,34 +1,25 @@
 // clang-format off
+
+
+
+#ifdef __linux__
+#include <sys/wait.h>
 #include <csignal>
-#include <cstddef>
-#include <cstdint>
+#include <unistd.h>
+#elif __MINGW32__
+#endif
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-// #define TRACY_NO_FRAME_IMAGE
 #include "Tracy.hpp"
 #include "TracyOpenGL.hpp"
-void* operator new(std :: size_t count)
-{
-auto ptr = malloc(count);
-// TracyAlloc (ptr , count);
-TracyAllocS(ptr, count, 5);
-return ptr;
-}
-void operator delete(void* ptr) noexcept
-{
-TracyFreeS(ptr,5);
-free(ptr);
-}
-
-
 
 #include "libraries/imgui/imgui.h"
 #include "libraries/imgui/imgui_impl_glfw.h"
 #include "libraries/imgui/imgui_impl_opengl3.h"
 
 #include "overlay/overlay.h"
-// clang-format on
 
 #include "memdef.h"
 #include "preferences.h"
@@ -43,8 +34,8 @@ free(ptr);
 #include "logger/logger.hpp"
 
 #include <iostream>
-#include <sys/wait.h>
-#include <unistd.h>
+
+// clang-format on
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -137,11 +128,12 @@ int main() {
     processInput(window);
 
     // ki.debugOsdPrint();
-
+    #ifdef __linux__  // !win32 alt?
     waitpid(ki.pid, &ki.wstatus, WNOHANG);
     if (ki.wstatus != 0) {
       ki.isRunning = false;
     }
+    #endif
 
     // render
     // ------

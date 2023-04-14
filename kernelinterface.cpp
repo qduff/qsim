@@ -7,8 +7,6 @@
 #include <iostream>
 #include <map>
 #include <string.h>
-#include <sys/ucontext.h>
-#include <sys/wait.h>
 
 #ifdef __linux__
 #include <cstdio>
@@ -16,16 +14,19 @@
 #include <spawn.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <sys/ucontext.h>
+#include <sys/wait.h>
 #include <unistd.h>
-
-#elif _WIN32
+#elif __MINGW32__
 #else
 #error unsupported!
 #endif
 
 int size = sizeof(memory_s);
 
+// Remove shared memories
 kernelInterface::~kernelInterface() {
+#ifdef __linux__
   kill(pid, SIGSEGV);
   int res = munmap(shmem, size);
   if (res == -1) {
@@ -35,6 +36,8 @@ kernelInterface::~kernelInterface() {
   if (fd == -1) {
     perror("unlink");
   }
+#elif __MINGW32__
+#endif
 }
 
 kernelInterface::kernelInterface() {}
@@ -42,23 +45,27 @@ kernelInterface::kernelInterface() {}
 // private
 
 void *kernelInterface::allocateMemory(std::string name) {
-
+#ifdef __linux__
   int fd = shm_open(name.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
   if (fd == -1) {
     perror("openm");
     return NULL;
   }
-
-  // extend shared memory object as by default it's initialized with size 0
   int res = ftruncate(fd, size);
   if (res == -1) {
     perror("ftruncate");
     return NULL;
   }
-
-  // map shared memory to process address space
   shmem = (memory_s *)mmap(NULL, size, PROT_WRITE, MAP_SHARED, fd, 0);
   *shmem = memory_s{};
+  if (shmem == MAP_FAILED) {
+    perror("mmap");
+    return NULL;
+  }
+#elif __MINGW32__
+#endif
+
+  //! MOVE THIS STUFF!
   shmem->parentVersion[0] = 0;
   shmem->parentVersion[1] = 0;
   shmem->parentVersion[2] = 2;
@@ -68,19 +75,17 @@ void *kernelInterface::allocateMemory(std::string name) {
     exit(-1);
   }
 
-  if (shmem == MAP_FAILED) {
-    perror("mmap");
-    return NULL;
-  }
-
   return shmem;
 }
 
 bool kernelInterface::spawnChild(std::string memname, std::string path) {
+#ifdef __linux__
   char *argv[] = {&path[0], &memname[0], NULL};
   int status;
   printf("spawn: %s %s\n", &path[0], &memname[0]);
   status = posix_spawn(&pid, &path[0], NULL, NULL, argv, environ);
+#elif __MINGW32__
+#endif
   return true;
 }
 
@@ -104,7 +109,7 @@ void kernelInterface::writeAxes(const float *axes, int count) {
   // channel 4 - RUD, YAW
   auto mapping = std::map<int, std::tuple<int, float, float>>{
       // DEST -> ORIGINAL, OFFSET, SCALING
-      {0, {3, 0 ,1}},
+      {0, {3, 0, 1}},
       {1, {4, 0, -1}},
       {2, {1, 0, -1}},
       {3, {0, 0, 1}},

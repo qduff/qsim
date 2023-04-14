@@ -76,16 +76,15 @@ void renderFPSbox(kernelInterface &ki, float frametime, int fps) {
 void renderOverlay(kernelInterface &ki) {
   ZoneScoped;
   ImGui::Begin("INTERFACE TOOLS", &my_tool_active, ImGuiWindowFlags_MenuBar);
-  if (ImGui::BeginMenuBar()) {
-    if (ImGui::BeginMenu("TOOLS")) {
-      if (ImGui::MenuItem("Kill", "-9")) {
-        kill(ki.pid, 11);
-      }
-      ImGui::EndMenu();
-    }
-    ImGui::EndMenuBar();
-  }
-
+  // if (ImGui::BeginMenuBar()) {
+  //   if (ImGui::BeginMenu("TOOLS")) {
+  //     if (ImGui::MenuItem("Kill", "-9")) {
+  //       kill(ki.pid, 11);
+  //     }
+  //     ImGui::EndMenu();
+  //   }
+  //   ImGui::EndMenuBar();
+  // }
   ImGui::BeginChild("Scrolling");
 
   ImGui::SetNextItemOpen(true, ImGuiCond_Once);
