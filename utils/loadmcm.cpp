@@ -11,7 +11,7 @@
 
 // #define texwidth = CHAR_WIDTH * NUM_CHARS;
 
-#define bitdepth 4
+#define BITDEPTH 4
 
 struct color_s {
   uint8_t r;
@@ -26,10 +26,8 @@ struct color_s transp = color_s{0b11111111, 0b11111111, 0b11111111, 0b00000000};
 
 // Converts a MAX7456 MCM file to a array that can be used by OpenGL
 // You should free the image memory after loading it into the GPU!
-uint8_t *loadMCM(char const *fpath, int &ret_texwidth, int &ret_texheight) {
-  static uint8_t *image =
-      new uint8_t[CHAR_WIDTH * CHAR_HEIGHT * NUM_CHARS * bitdepth];
-
+auto *loadMCM(char const *fpath, int &ret_texwidth, int &ret_texheight) {
+  auto *image = new uint8_t[CHAR_HEIGHT][CHAR_WIDTH  * NUM_CHARS][BITDEPTH];
   std::ifstream is(fpath);
   std::string byte;
   std::string crumb;
@@ -55,14 +53,11 @@ uint8_t *loadMCM(char const *fpath, int &ret_texwidth, int &ret_texheight) {
         else if (crumb == "11")
           color = transp;
 
-        image[(CHAR_WIDTH * NUM_CHARS * pixdown + pixacross) * bitdepth] =
-            color.r;
-        image[(CHAR_WIDTH * NUM_CHARS * pixdown + pixacross) * bitdepth + 1] =
-            color.g;
-        image[(CHAR_WIDTH * NUM_CHARS * pixdown + pixacross) * bitdepth + 2] =
-            color.b;
-        image[(CHAR_WIDTH * NUM_CHARS * pixdown + pixacross) * bitdepth + 3] =
-            color.a;
+        image[pixdown][pixacross][0] = color.r;
+        image[pixdown][pixacross][1] = color.g;
+        image[pixdown][pixacross][2] = color.b;
+        image[pixdown][pixacross][3] = color.a;
+
         pixacross += 1;
       }
       if (pixacross % CHAR_WIDTH == 0) {
@@ -85,15 +80,15 @@ uint8_t *loadMCM(char const *fpath, int &ret_texwidth, int &ret_texheight) {
 uint8_t *testLoader(char const *name, int &texwidth, int &texheight) {
   int width = 256;
   int height = 256;
-  uint8_t *image = new uint8_t[width * height * bitdepth];
+  uint8_t *image = new uint8_t[width * height * BITDEPTH];
 
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
       if (x - y < 0) {
-        image[(y * width + x) * bitdepth] = 0b11111111;
-        image[(y * width + x) * bitdepth + 1] = 0b11111111;
-        image[(y * width + x) * bitdepth + 2] = 0b11111111;
-        image[(y * width + x) * bitdepth + 3] = 0b11111111;
+        image[(y * width + x) * BITDEPTH] = 0b11111111;
+        image[(y * width + x) * BITDEPTH + 1] = 0b11111111;
+        image[(y * width + x) * BITDEPTH + 2] = 0b11111111;
+        image[(y * width + x) * BITDEPTH + 3] = 0b11111111;
       }
     }
   }
