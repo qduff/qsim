@@ -1,21 +1,23 @@
+#include <cstddef>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <string>
 
-#define charWidth 12
-#define charHeight 18
+#define CHAR_WIDTH 12
+#define CHAR_HEIGHT 18
 
-#define numChars 256
+#define NUM_CHARS 256
 
-int texwidth = charWidth * numChars;
+// #define texwidth = CHAR_WIDTH * NUM_CHARS;
 
 #define bitdepth 4
 
 struct color_s {
-  unsigned char r;
-  unsigned char g;
-  unsigned char b;
-  unsigned char a;
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+  uint8_t a;
 };
 
 struct color_s black = color_s{0b00000000, 0b00000000, 0b00000000, 0b11111111};
@@ -24,61 +26,66 @@ struct color_s transp = color_s{0b11111111, 0b11111111, 0b11111111, 0b00000000};
 
 // Converts a MAX7456 MCM file to a array that can be used by OpenGL
 // You should free the image memory after loading it into the GPU!
-unsigned char *loadMCM(char const *fpath, int &ret_texwidth,
-                       int &ret_texheight) {
-  static unsigned char *image =
-      new unsigned char[charWidth * charHeight * numChars * bitdepth];
+uint8_t *loadMCM(char const *fpath, int &ret_texwidth, int &ret_texheight) {
+  static uint8_t *image =
+      new uint8_t[CHAR_WIDTH * CHAR_HEIGHT * NUM_CHARS * bitdepth];
 
-  std::ifstream is(fpath);  
+  std::ifstream is(fpath);
   std::string byte;
   std::string crumb;
 
   struct color_s color {};
 
-  int counter = -1;
+  int counter = 0;
 
   int pixacross = 0;
   int pixdown = 0;
 
+  getline(is, byte); // MAX7456 - can be ignored
   while (getline(is, byte)) {
-    if (!(counter == -1 || (counter % 64 > 53))) {
+    if (!(counter % 64 > 53)) {
       for (int pos = 0; pos < 8; pos += 2) {
         crumb = byte.substr(pos, 2);
         if (crumb == "00")
           color = black;
-        if (crumb == "01")
+        else if (crumb == "01")
           color = transp;
-        if (crumb == "10")
+        else if (crumb == "10")
           color = white;
-        if (crumb == "11")
+        else if (crumb == "11")
           color = transp;
 
-        image[(texwidth * pixdown + pixacross) * bitdepth] = color.r;
-        image[(texwidth * pixdown + pixacross) * bitdepth + 1] = color.g;
-        image[(texwidth * pixdown + pixacross) * bitdepth + 2] = color.b;
-        image[(texwidth * pixdown + pixacross) * bitdepth + 3] = color.a;
+        image[(CHAR_WIDTH * NUM_CHARS * pixdown + pixacross) * bitdepth] =
+            color.r;
+        image[(CHAR_WIDTH * NUM_CHARS * pixdown + pixacross) * bitdepth + 1] =
+            color.g;
+        image[(CHAR_WIDTH * NUM_CHARS * pixdown + pixacross) * bitdepth + 2] =
+            color.b;
+        image[(CHAR_WIDTH * NUM_CHARS * pixdown + pixacross) * bitdepth + 3] =
+            color.a;
         pixacross += 1;
       }
-      if (pixacross % charWidth == 0) {
-        pixacross -= charWidth;
-        pixdown += 1;
-      }
-      if (pixdown == charHeight) {
-        pixdown = 0;
-        pixacross += charWidth;
+      if (pixacross % CHAR_WIDTH == 0) {
+        pixacross -= CHAR_WIDTH;
+        if (pixdown == CHAR_HEIGHT - 1) {
+          pixdown = 0;
+          pixacross += CHAR_WIDTH;
+        } else {
+          pixdown += 1;
+        }
       }
     }
     ++counter;
   }
-  ret_texwidth = texwidth;
-  ret_texheight = charHeight;
+  ret_texwidth = CHAR_WIDTH * NUM_CHARS;
+  ret_texheight = CHAR_HEIGHT;
   return image;
 };
 
-unsigned char *testLoader(char const *name, int &texwidth, int &texheight) {
+uint8_t *testLoader(char const *name, int &texwidth, int &texheight) {
   int width = 256;
   int height = 256;
-  unsigned char *image = new unsigned char[width * height * bitdepth];
+  uint8_t *image = new uint8_t[width * height * bitdepth];
 
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
