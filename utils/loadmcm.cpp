@@ -76,23 +76,3 @@ auto *loadMCM(char const *fpath, int &ret_texwidth, int &ret_texheight) {
   ret_texheight = CHAR_HEIGHT;
   return image;
 };
-
-uint8_t *testLoader(char const *name, int &texwidth, int &texheight) {
-  int width = 256;
-  int height = 256;
-  uint8_t *image = new uint8_t[width * height * BITDEPTH];
-
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
-      if (x - y < 0) {
-        image[(y * width + x) * BITDEPTH] = 0b11111111;
-        image[(y * width + x) * BITDEPTH + 1] = 0b11111111;
-        image[(y * width + x) * BITDEPTH + 2] = 0b11111111;
-        image[(y * width + x) * BITDEPTH + 3] = 0b11111111;
-      }
-    }
-  }
-  texwidth = width;
-  texheight = height;
-  return image;
-};
