@@ -278,7 +278,7 @@ TRACY_API const char* GetEnvVar( const char* name )
 
     if( count >= kBufferSize )
     {
-        char* buf = reinterpret_cast<char*>(_alloca(count + 1));
+        char* buf = reinterpret_cast<char*>(alloca(count + 1));
         count = GetEnvironmentVariableA(name, buf, count + 1);
         memcpy(buffer, buf, kBufferSize);
         buffer[kBufferSize - 1] = 0;

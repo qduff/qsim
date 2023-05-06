@@ -381,8 +381,8 @@ static const char* GetProcessName()
 {
     const char* processName = "unknown";
 #ifdef _WIN32
-    static char buf[_MAX_PATH];
-    GetModuleFileNameA( nullptr, buf, _MAX_PATH );
+    static char buf[MAX_PATH];
+    GetModuleFileNameA( nullptr, buf, MAX_PATH );
     const char* ptr = buf;
     while( *ptr != '\0' ) ptr++;
     while( ptr > buf && *ptr != '\\' && *ptr != '/' ) ptr--;
@@ -405,8 +405,8 @@ static const char* GetProcessName()
 static const char* GetProcessExecutablePath()
 {
 #ifdef _WIN32
-    static char buf[_MAX_PATH];
-    GetModuleFileNameA( nullptr, buf, _MAX_PATH );
+    static char buf[MAX_PATH];
+    GetModuleFileNameA( nullptr, buf, MAX_PATH );
     return buf;
 #elif defined __ANDROID__
     return nullptr;
