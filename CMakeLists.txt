@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.24)
-project(test)
+project(qsim)
+
+if(MINGW OR WIN32)
+add_definitions(-D_WIN32)
+endif()
 
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -18,31 +22,31 @@ add_subdirectory(libraries/imgui/)
 
 add_definitions(-DTRACY_ENABLE)
 
-add_executable(test main.cpp utils/loadmcm.cpp kernelinterface.cpp overlay/overlay.cpp preferences.cpp renderers/osd.cpp  logger/logger.cpp
+add_executable(qsim main.cpp utils/loadmcm.cpp kernelinterface.cpp overlay/overlay.cpp preferences.cpp renderers/osd.cpp  logger/logger.cpp
 renderers/scene.cpp
 )
 
-if(MINGW)
-message("i have lost my sanity please help")
+if(MINGW OR WIN32)
+message("mingw")
 set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ ${CMAKE_CXX_STANDARD_LIBRARIES}")
 set(CMAKE_EXE_LINKER_FLAGS "--static ${CMAKE_EXE_LINKER_FLAGS}")
 endif()
 
 
 find_package(GLEW REQUIRED)
-target_link_libraries(test GLEW::GLEW)
+target_link_libraries(qsim GLEW::GLEW)
 
 find_package(OpenGL REQUIRED)
-target_link_libraries(test OpenGL::GL)
+target_link_libraries(qsim OpenGL::GL)
 
 find_package(glfw3 3.3 REQUIRED)
 
-# target_link_libraries(test /usr/lib64/libglfw.so)
+# target_link_libraries(qsim /usr/lib64/libglfw.so)
 
-target_link_libraries(test glfw)
+target_link_libraries(qsim glfw)
 
-target_link_libraries(test imgui)
+target_link_libraries(qsim imgui)
 
-target_link_libraries(test tracy)
+target_link_libraries(qsim tracy)
 
-target_link_libraries(test glad)
+target_link_libraries(qsim glad)

@@ -17,7 +17,13 @@
 #include <sys/ucontext.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#elif __MINGW32__
+#elif __MINGW32__ || defined __CYGWIN__
+#include <stdio.h>
+#include <tchar.h>
+#include <windows.h>
+STARTUPINFO si={sizeof(si)};
+PROCESS_INFORMATION pi;
+HANDLE hMapFile;
 #else
 #error unsupported!
 #endif
@@ -36,7 +42,14 @@ kernelInterface::~kernelInterface() {
   if (fd == -1) {
     perror("unlink");
   }
-#elif __MINGW32__
+#elif __MINGW32__ || defined __CYGWIN__
+  puts("killin");
+  TerminateProcess(pi.hProcess, 1);
+   UnmapViewOfFile(shmem); // ! mustbestored!
+   CloseHandle(hMapFile);
+  CloseHandle( pi.hProcess );
+  CloseHandle( pi.hThread );
+puts("KILLED SUCCESSFULY >:)");
 #endif
 }
 
@@ -57,13 +70,41 @@ void *kernelInterface::allocateMemory(std::string name) {
     return NULL;
   }
   shmem = (memory_s *)mmap(NULL, size, PROT_WRITE, MAP_SHARED, fd, 0);
-  *shmem = memory_s{};
   if (shmem == MAP_FAILED) {
     perror("mmap");
     return NULL;
   }
-#elif __MINGW32__
+#elif __MINGW32__ || defined __CYGWIN__
+LPCSTR mname = name.c_str();
+  
+   hMapFile = CreateFileMapping(
+                 INVALID_HANDLE_VALUE,    // use paging file
+                 NULL,                    // default security
+                 PAGE_READWRITE,          // read/write access
+                 0,                       // maximum object size (high-order DWORD)
+                 sizeof(memory_s),                // maximum object size (low-order DWORD)
+                 mname);                 // name of mapping object
+   if (hMapFile == NULL)
+   {
+      printf("Could not create file mapping object (%d).\n",
+             GetLastError());
+      return NULL;
+   }
+   shmem = (memory_s *)MapViewOfFile(hMapFile,   // handle to map object
+                        FILE_MAP_ALL_ACCESS, // read/write permission
+                        0,
+                        0,
+                        sizeof(memory_s));
+    printf("%p\n\n",shmem);
+   if (shmem == NULL)
+   {
+      printf("Could not map view of file (%d).\n",
+             GetLastError());
+       CloseHandle(hMapFile);
+      return NULL;
+   }
 #endif
+  *shmem = memory_s{};
 
   //! MOVE THIS STUFF!
   shmem->parentVersion[0] = 0;
@@ -79,12 +120,22 @@ void *kernelInterface::allocateMemory(std::string name) {
 }
 
 bool kernelInterface::spawnChild(std::string memname, std::string path) {
+  printf("spawn: %s %s\n", &path[0], &memname[0]);
 #ifdef __linux__
   char *argv[] = {&path[0], &memname[0], NULL};
   int status;
-  printf("spawn: %s %s\n", &path[0], &memname[0]);
   status = posix_spawn(&pid, &path[0], NULL, NULL, argv, environ);
-#elif __MINGW32__
+#elif __MINGW32__ || defined __CYGWIN__
+  if (! CreateProcess( path.c_str(),
+  ("qsim_engine " + memname).data(),
+  // such that memname = argv[1] and not 0 on windoez
+  // might be worth fixing on engine side doe
+  NULL, NULL, TRUE, 0, NULL, NULL , &si, &pi
+  )) // suspiciously reasonable for windows
+  {
+    printf( "CreateProcess failed (%d).\n", GetLastError() );
+    return false;
+  }
 #endif
   return true;
 }
@@ -96,8 +147,13 @@ bool kernelInterface::start() {
   std::string memname = "name";
   allocateMemory(memname);
 
+  #if defined __MINGW32__ || defined __CYGWIN__
   std::string path(
-      "/home/qduff/Documents/quad_sim_stuff/sim_kernel/build/qsim_engine");
+      "C:\\Users\\qduff\\Downloads\\qsim-engine-betaflight\\build\\qsim_engine.exe");
+  #else
+  std::string path(
+      "/home/qduff/Documents/quad_sim_stuff/sim_kernel/build/sim_kernel");
+  #endif
   isRunning = spawnChild(memname, path);
   return isRunning;
 }

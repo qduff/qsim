@@ -142,7 +142,7 @@ bool Socket::Connect( const char* addr, uint16_t port )
 
 #if defined _WIN32
         u_long nonblocking = 0;
-        ioctlsocket( m_connSock, FIONBIO, &nonblocking );
+        ioctlsocket( m_connSock, FIONBIO, (unsigned int*)&nonblocking );
 #else
         int flags = fcntl( m_connSock, F_GETFL, 0 );
         fcntl( m_connSock, F_SETFL, flags & ~O_NONBLOCK );
@@ -174,7 +174,7 @@ bool Socket::Connect( const char* addr, uint16_t port )
 #endif
 #if defined _WIN32
         u_long nonblocking = 1;
-        ioctlsocket( sock, FIONBIO, &nonblocking );
+        ioctlsocket( sock, FIONBIO, (unsigned int*)&nonblocking );
 #else
         int flags = fcntl( sock, F_GETFL, 0 );
         fcntl( sock, F_SETFL, flags | O_NONBLOCK );
@@ -210,7 +210,7 @@ bool Socket::Connect( const char* addr, uint16_t port )
 
 #if defined _WIN32
     u_long nonblocking = 0;
-    ioctlsocket( sock, FIONBIO, &nonblocking );
+    ioctlsocket( sock, FIONBIO, (unsigned int*)&nonblocking );
 #else
     int flags = fcntl( sock, F_GETFL, 0 );
     fcntl( sock, F_SETFL, flags & ~O_NONBLOCK );

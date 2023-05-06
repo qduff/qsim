@@ -12,8 +12,11 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#ifdef TRACY_ENABLE
 #include "Tracy.hpp"
 #include "TracyOpenGL.hpp"
+#endif
+
 
 #include "libraries/imgui/imgui.h"
 #include "libraries/imgui/imgui_impl_glfw.h"
@@ -43,10 +46,12 @@ void processInput(GLFWwindow *window);
 // settings
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
+  kernelInterface ki;
 
-kernelInterface ki;
 
 int main() {
+
+
 
   Logger& logger = Logger::getLogger();
   logger.prioritylevel = 0;
@@ -133,6 +138,9 @@ int main() {
       ki.isRunning = false;
     }
     #endif
+       //!todo  WaitForSingleObject( pi.hProcess, INFINITE ); windows equivalent!
+       //* thus store this in the ki class, actuially move this entire block terheh
+
 
     // render
     // ------
@@ -177,7 +185,7 @@ int main() {
     }
 
     {
-      ZoneScopedN("IMGUI Overlay:");
+      // ZoneScopedN("IMGUI Overlay:");
       renderOverlay(ki);
       renderFPSbox(ki, frametime, fps);
       renderOSDOverlay(osd);

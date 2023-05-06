@@ -3,10 +3,9 @@
 #include <vector>
 #include <cstdarg>
 
-// #ifdef __MINGW32__
-// #include <stdarg.h>
-// #endif
-
+#if defined __MINGW32__ || defined __CYGWIN__
+#include <stdarg.h>
+#endif
 
 
 Logger &Logger::getLogger() {
