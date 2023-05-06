@@ -97,7 +97,7 @@ bool kernelInterface::start() {
   allocateMemory(memname);
 
   std::string path(
-      "/home/qduff/Documents/quad_sim_stuff/sim_kernel/build/sim_kernel");
+      "/home/qduff/Documents/quad_sim_stuff/sim_kernel/build/qsim_engine");
   isRunning = spawnChild(memname, path);
   return isRunning;
 }

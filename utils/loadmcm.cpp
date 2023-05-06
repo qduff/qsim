@@ -1,15 +1,12 @@
-#include <cstddef>
 #include <cstdint>
 #include <fstream>
-#include <iostream>
-#include <string>
+
 
 #define CHAR_WIDTH 12
 #define CHAR_HEIGHT 18
+#define TEXTURE_WIDTH CHAR_WIDTH * NUM_CHARS
 
 #define NUM_CHARS 256
-
-// #define texwidth = CHAR_WIDTH * NUM_CHARS;
 
 #define BITDEPTH 4
 
@@ -27,7 +24,7 @@ struct color_s transp = color_s{0b11111111, 0b11111111, 0b11111111, 0b00000000};
 // Converts a MAX7456 MCM file to a array that can be used by OpenGL
 // You should free the image memory after loading it into the GPU!
 auto *loadMCM(char const *fpath, int &ret_texwidth, int &ret_texheight) {
-  auto *image = new uint8_t[CHAR_HEIGHT][CHAR_WIDTH  * NUM_CHARS][BITDEPTH];
+  auto *image = new uint8_t[CHAR_HEIGHT][TEXTURE_WIDTH][BITDEPTH];
   std::ifstream is(fpath);
   std::string byte;
   std::string crumb;
@@ -46,11 +43,9 @@ auto *loadMCM(char const *fpath, int &ret_texwidth, int &ret_texheight) {
         crumb = byte.substr(pos, 2);
         if (crumb == "00")
           color = black;
-        else if (crumb == "01")
-          color = transp;
         else if (crumb == "10")
           color = white;
-        else if (crumb == "11")
+        else // if (crumb == "01" || crumb == "11"), not really necessary!
           color = transp;
 
         image[pixdown][pixacross][0] = color.r;
@@ -72,7 +67,7 @@ auto *loadMCM(char const *fpath, int &ret_texwidth, int &ret_texheight) {
     }
     ++counter;
   }
-  ret_texwidth = CHAR_WIDTH * NUM_CHARS;
+  ret_texwidth = TEXTURE_WIDTH;
   ret_texheight = CHAR_HEIGHT;
   return image;
 };

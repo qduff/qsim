@@ -16,7 +16,6 @@ private:
   unsigned int VBO_osd;
   unsigned int EBO_osd;
   unsigned int OSDTEX_osd;
-  
 
   void loadTex(std::string fontname);
 
@@ -27,6 +26,6 @@ public:
   std::vector<std::string> getOSDFonts();
   void changeOSDFont(std::string fontname);
   void renderOSD(memory_s *shmem, int width, int height);
-    void renderOSDStupidly(memory_s *shmem, int width, int height);
+  void renderOSDStupidly(memory_s *shmem, int width, int height);
 
 };

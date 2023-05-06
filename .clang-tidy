@@ -1,5 +1,6 @@
 ---
 BasedOnStyle: Google
 SortIncludes: false
-
+IndentWidth: 4
+ColumnLimit: 80
 ...

@@ -1,11 +1,18 @@
 #pragma once
-
 #include "../shader.hpp"
-#include <glad/glad.h>
+#include "../memdef.h"
+
 #include <string>
 #include <vector>
-// #define STB_IMAGE_IMPLEMENTATION
-// #include "../utils/stb_image.h"
+
+#include <GLFW/glfw3.h>
+#include <glad/glad.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+
 
 class sceneRenderer {
 
@@ -16,10 +23,9 @@ private:
   unsigned int VBO, VAO;
   unsigned int texture1, texture2;
 
-
 public:
   sceneRenderer();
   ~sceneRenderer();
 
-  void render(int width, int height);
+  void render(memory_s *shmem, int width, int height);
 };

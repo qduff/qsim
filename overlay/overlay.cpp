@@ -1,5 +1,4 @@
 #include "overlay.h"
-#define TRACY_ENABLE
 #include "Tracy.hpp"
 #include <istream>
 #include <vector>

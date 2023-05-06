@@ -106,7 +106,6 @@ int main() {
 
   // osd.initializeOSD(); // could be wrapped into constructor!
   osdRenderer osd("extra_large");
-  
 
   sceneRenderer scene;
 
@@ -154,7 +153,7 @@ int main() {
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    scene.render(SCR_WIDTH, SCR_HEIGHT);
+    scene.render(ki.shmem, SCR_WIDTH, SCR_HEIGHT);
     osd.renderOSD(ki.shmem, SCR_WIDTH, SCR_HEIGHT);
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse

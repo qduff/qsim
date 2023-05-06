@@ -1,10 +1,11 @@
 #include "logger.hpp"
 #include <iostream>
 #include <vector>
+#include <cstdarg>
 
-#ifdef __MINGW32__
-#include <stdarg.h>
-#endif
+// #ifdef __MINGW32__
+// #include <stdarg.h>
+// #endif
 
 
 

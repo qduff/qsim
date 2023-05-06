@@ -23,7 +23,7 @@ renderers/scene.cpp
 )
 
 if(MINGW)
-message("mingw")
+message("i have lost my sanity please help")
 set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ ${CMAKE_CXX_STANDARD_LIBRARIES}")
 set(CMAKE_EXE_LINKER_FLAGS "--static ${CMAKE_EXE_LINKER_FLAGS}")
 endif()
