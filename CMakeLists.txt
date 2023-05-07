@@ -23,7 +23,7 @@ add_subdirectory(libraries/imgui/)
 add_definitions(-DTRACY_ENABLE)
 
 add_executable(qsim main.cpp utils/loadmcm.cpp kernelinterface.cpp overlay/overlay.cpp preferences.cpp renderers/osd.cpp  logger/logger.cpp
-renderers/scene.cpp
+renderers/scene.cpp input/input.cpp
 )
 
 if(MINGW OR WIN32)

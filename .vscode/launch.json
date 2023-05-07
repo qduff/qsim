@@ -8,7 +8,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "build/test",
+            "program": "build/qsim",
             "args": [],
             "cwd": "build",
             "preLaunchTask": "CMake: build"

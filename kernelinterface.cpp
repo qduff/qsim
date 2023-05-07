@@ -31,7 +31,7 @@ HANDLE hMapFile;
 int size = sizeof(memory_s);
 
 // Remove shared memories
-kernelInterface::~kernelInterface() {
+engineInterface::~engineInterface() {
 #ifdef __linux__
   kill(pid, SIGSEGV);
   int res = munmap(shmem, size);
@@ -53,11 +53,11 @@ puts("KILLED SUCCESSFULY >:)");
 #endif
 }
 
-kernelInterface::kernelInterface() {}
+engineInterface::engineInterface() {}
 
 // private
 
-void *kernelInterface::allocateMemory(std::string name) {
+void *engineInterface::allocateMemory(std::string name) {
 #ifdef __linux__
   int fd = shm_open(name.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
   if (fd == -1) {
@@ -119,7 +119,7 @@ LPCSTR mname = name.c_str();
   return shmem;
 }
 
-bool kernelInterface::spawnChild(std::string memname, std::string path) {
+bool engineInterface::spawnChild(std::string memname, std::string path) {
   printf("spawn: %s %s\n", &path[0], &memname[0]);
 #ifdef __linux__
   char *argv[] = {&path[0], &memname[0], NULL};
@@ -142,7 +142,7 @@ bool kernelInterface::spawnChild(std::string memname, std::string path) {
 
 // public
 
-bool kernelInterface::start() {
+bool engineInterface::start() {
 
   std::string memname = "name";
   allocateMemory(memname);
@@ -152,39 +152,23 @@ bool kernelInterface::start() {
       "C:\\Users\\qduff\\Downloads\\qsim-engine-betaflight\\build\\qsim_engine.exe");
   #else
   std::string path(
-      "/home/qduff/Documents/quad_sim_stuff/sim_kernel/build/sim_kernel");
+      "/home/qduff/Documents/quad_sim_stuff/sim_kernel/build/qsim_engine");
   #endif
   isRunning = spawnChild(memname, path);
   return isRunning;
 }
 
-void kernelInterface::writeAxes(const float *axes, int count) {
+void engineInterface::writeAxis(float value, int id) {
   // channel 1 - AIL, roll
   // channel 2 - ELE, pitc
   // channel 3 - THR, trottle
   // channel 4 - RUD, YAW
-  auto mapping = std::map<int, std::tuple<int, float, float>>{
-      // DEST -> ORIGINAL, OFFSET, SCALING
-      {0, {3, 0, 1}},
-      {1, {4, 0, -1}},
-      {2, {1, 0, -1}},
-      {3, {0, 0, 1}},
-  };
+  
   // POST MAPPING
-
-  for (int i = 0; i < 16; ++i) {
-    if (mapping.size() > i) {
-      float val = axes[std::get<0>(mapping[i])] * std::get<2>(mapping[i]);
-      shmem->rc[i] = val;
-      // printf("SENDOUT %i :  %f\n", i, shmem->rc[i]);
-    } else {
-      shmem->rc[i] = 0;
-    }
-  }
-  // #endif
+    shmem->rc[id] = value;
 }
 
-void kernelInterface::debugOsdPrint() {
+void engineInterface::debugOsdPrint() {
   printf("\033[H\033[J");
   for (size_t i = 0; i < VIDEO_LINES * CHARS_PER_LINE; ++i) {
     if (i % CHARS_PER_LINE == 0) {

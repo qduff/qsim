@@ -36,6 +36,8 @@
 
 #include "logger/logger.hpp"
 
+#include "input/input.hpp"
+
 #include <iostream>
 
 // clang-format on
@@ -46,16 +48,14 @@ void processInput(GLFWwindow *window);
 // settings
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
-  kernelInterface ki;
-
+engineInterface ki;
+Input rcinput;
 
 int main() {
 
-
-
-  Logger& logger = Logger::getLogger();
+  Logger &logger = Logger::getLogger();
   logger.prioritylevel = 0;
-  logger.Log(Logger::INFO,  "Starting");
+  logger.Log(Logger::INFO, "Starting");
   logger.Log(Logger::INFO, "Width = %d, Height = %d\n", SCR_WIDTH, SCR_HEIGHT);
 
   glfwInit();
@@ -102,7 +102,6 @@ int main() {
   ImGui_ImplOpenGL3_Init("#version 330");
   bool my_tool_active = true;
 
-
   bool i = ki.start();
   printf("start:%d\n", i);
   if (i != true) {
@@ -111,7 +110,6 @@ int main() {
 
   // osd.initializeOSD(); // could be wrapped into constructor!
   osdRenderer osd("extra_large");
-
   sceneRenderer scene;
 
   // render loop
@@ -123,7 +121,6 @@ int main() {
 
   glEnable(GL_DEPTH_TEST);
 
-
   // GAME LOOP
   TracyMessageL("Starting Game Loop");
   while (!glfwWindowShouldClose(window)) {
@@ -131,16 +128,15 @@ int main() {
     // -----
     processInput(window);
 
-    // ki.debugOsdPrint();
-    #ifdef __linux__  // !win32 alt?
+// ki.debugOsdPrint();
+#ifdef __linux__ // !win32 alt?
     waitpid(ki.pid, &ki.wstatus, WNOHANG);
     if (ki.wstatus != 0) {
       ki.isRunning = false;
     }
-    #endif
-       //!todo  WaitForSingleObject( pi.hProcess, INFINITE ); windows equivalent!
-       //* thus store this in the ki class, actuially move this entire block terheh
-
+#endif
+    //! todo  WaitForSingleObject( pi.hProcess, INFINITE ); windows equivalent!
+    //* thus store this in the ki class, actuially move this entire block terheh
 
     // render
     // ------
@@ -186,9 +182,10 @@ int main() {
 
     {
       // ZoneScopedN("IMGUI Overlay:");
-      renderOverlay(ki);
+      renderInterfaceOverlay(ki);
       renderFPSbox(ki, frametime, fps);
       renderOSDOverlay(osd);
+      rcinput.renderOverlay();
       {
         ZoneScopedN("RENDER OVERLAY");
 
@@ -209,7 +206,6 @@ int main() {
       ZoneScopedN("polling");
       glfwPollEvents();
     }
-
   }
 
   // optional: de-allocate all resources once they've outlived their purpose:
@@ -224,15 +220,14 @@ int main() {
 // process all input: query GLFW whether relevant keys are pressed/released
 // this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window) {
+void processInput(GLFWwindow *window) { //! move this callback to input.cpp
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
-  if (glfwJoystickPresent(GLFW_JOYSTICK_1)) {
+  rcinput.present = glfwJoystickPresent(GLFW_JOYSTICK_1);
+  if (rcinput.present) {
     int count;
     const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
-    // glfwGetJoystickName(GLFW_JOYSTICK_1);
-    ki.writeAxes(axes, count);
-
+    rcinput.processAxes(ki, glfwGetJoystickName(GLFW_JOYSTICK_1), axes, count);
   }
 }
 

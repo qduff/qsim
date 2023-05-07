@@ -5,7 +5,7 @@
 
 bool my_tool_active;
 
-void renderFPSbox(kernelInterface &ki, float frametime, int fps) {
+void renderFPSbox(engineInterface &ki, float frametime, int fps) {
   ZoneScoped;
   static int location = 0;
   ImGuiIO &io = ImGui::GetIO();
@@ -72,7 +72,7 @@ void renderFPSbox(kernelInterface &ki, float frametime, int fps) {
   ImGui::End();
 }
 
-void renderOverlay(kernelInterface &ki) {
+void renderInterfaceOverlay(engineInterface &ki) {
   ZoneScoped;
   ImGui::Begin("INTERFACE TOOLS", &my_tool_active, ImGuiWindowFlags_MenuBar);
   // if (ImGui::BeginMenuBar()) {
