@@ -1,7 +1,11 @@
 #pragma once
 
-#include "../kernelinterface.hpp"
+#include "../engineinterface.hpp"
 #include <map>
+
+template <typename T> T CLAMP(const T &value, const T &low, const T &high) {
+  return value < low ? low : (value > high ? high : value);
+}
 
 class Input {
 private:
@@ -15,9 +19,10 @@ private:
     return (std::abs(val) > *getDeadzone(i)) ? val : 0.0f;
   }
 
-  inline float getProcessed(int i ){
-          return applyDeadzone(i, getAxisValue(*getSource(i))) * *getScale(i) +
-                  *getOffset(i);
+  inline float getProcessed(int i) {
+    return CLAMP(applyDeadzone(i, getAxisValue(*getSource(i))) * *getScale(i) +
+                     *getOffset(i),
+                 -1.0f, 1.0f);
   }
 
 public:
@@ -47,7 +52,7 @@ public:
   int axescount = 0;
 
   const unsigned char *buttonvalues;
-  int buttoncount;
+  int buttoncount = 0;
 
   void processAxes(engineInterface &ki);
   void renderOverlay();

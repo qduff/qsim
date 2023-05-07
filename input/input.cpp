@@ -40,12 +40,12 @@ void Input::renderOverlay() {
       ImGui::ProgressBar((raw + 1) / 2, ImVec2(0.0f, 0.0f), buf);
 
       // static float f1 = 0.123f;
-      float vec4f[] = {*getOffset(i), *getDeadzone(i), *getScale(i)};
-      ImGui::SliderFloat3(("off,ded,sca" + std::to_string(i)).c_str(), vec4f,
+      float vec4f[] = { *getDeadzone(i), *getScale(i), *getOffset(i)};
+      ImGui::SliderFloat3(("d,s,o" + std::to_string(i)).c_str(), vec4f,
                           -1.0f, 1.0f);
-      *getOffset(i) = vec4f[0];
-      *getDeadzone(i) = vec4f[1];
-      *getScale(i) = vec4f[2];
+      *getDeadzone(i) = vec4f[0];
+      *getScale(i) = vec4f[1]; // this is not great code
+      *getOffset(i) = vec4f[2];
       // ORDER: DSO
       float val = getProcessed(i);
       sprintf(buf, "%i", (int)(val * 100));

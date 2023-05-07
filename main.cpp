@@ -6,7 +6,6 @@
 #include <sys/wait.h>
 #include <csignal>
 #include <unistd.h>
-#elif __MINGW32__
 #endif
 
 #include <glad/glad.h>
@@ -27,7 +26,7 @@
 #include "memdef.h"
 #include "preferences.h"
 
-#include "kernelinterface.hpp"
+#include "engineinterface.hpp"
 #include "shader.hpp"
 
 #include "renderers/osd.h"
@@ -48,12 +47,13 @@ void processInput(GLFWwindow *window);
 // settings
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
-engineInterface ki;
+engineInterface engine;
 Input rcinput;
 
 int main() {
 
   Logger &logger = Logger::getLogger();
+  // Logger logger;
   logger.prioritylevel = 0;
   logger.Log(Logger::INFO, "Starting");
   logger.Log(Logger::INFO, "Width = %d, Height = %d\n", SCR_WIDTH, SCR_HEIGHT);
@@ -79,7 +79,7 @@ int main() {
   glfwMakeContextCurrent(window);
 
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-  glfwSwapInterval(0); //! vsucnyt=1
+  glfwSwapInterval(1); //! vsucnyt=1, unlimit=0
 
   // glad: load all OpenGL function pointers
   // ---------------------------------------
@@ -102,13 +102,12 @@ int main() {
   ImGui_ImplOpenGL3_Init("#version 330");
   bool my_tool_active = true;
 
-  bool i = ki.start();
-  printf("start:%d\n", i);
-  if (i != true) {
+
+  if (!engine.start()) {
+    puts("could not start engine, quitting!");
     return -1;
   }
 
-  // osd.initializeOSD(); // could be wrapped into constructor!
   osdRenderer osd("extra_large");
   sceneRenderer scene;
 
@@ -129,15 +128,7 @@ int main() {
     processInput(window);
 
 // ki.debugOsdPrint();
-#ifdef __linux__ // !win32 alt?
-    waitpid(ki.pid, &ki.wstatus, WNOHANG);
-    if (ki.wstatus != 0) {
-      ki.isRunning = false;
-    }
-#endif
-    //! todo  WaitForSingleObject( pi.hProcess, INFINITE ); windows equivalent!
-    //* thus store this in the ki class, actuially move this entire block terheh
-
+    engine.checkRunning();
     // render
     // ------
 
@@ -157,8 +148,8 @@ int main() {
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    scene.render(ki.shmem, SCR_WIDTH, SCR_HEIGHT);
-    osd.renderOSD(ki.shmem, SCR_WIDTH, SCR_HEIGHT);
+    scene.render(engine.shmem, SCR_WIDTH, SCR_HEIGHT);
+    osd.renderOSD(engine.shmem, SCR_WIDTH, SCR_HEIGHT);
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse
     // moved etc.)
@@ -182,8 +173,8 @@ int main() {
 
     {
       // ZoneScopedN("IMGUI Overlay:");
-      renderInterfaceOverlay(ki);
-      renderFPSbox(ki, frametime, fps);
+      renderInterfaceOverlay(engine);
+      renderFPSbox(engine, frametime, fps);
       renderOSDOverlay(osd);
       rcinput.renderOverlay();
       {
@@ -207,19 +198,12 @@ int main() {
       glfwPollEvents();
     }
   }
-
-  // optional: de-allocate all resources once they've outlived their purpose:
-  // ------------------------------------------------------------------------
-
-  // glfw: terminate, clearing all previously allocated GLFW resources.
-  // ------------------------------------------------------------------
   glfwTerminate();
   return 0;
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released
 // this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window) { //! move this callback to input.cpp
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
@@ -228,17 +212,13 @@ void processInput(GLFWwindow *window) { //! move this callback to input.cpp
     rcinput.axesvalues = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &rcinput.axescount);
     rcinput.buttonvalues = glfwGetJoystickButtons(GLFW_JOYSTICK_3, &rcinput.buttoncount);
     rcinput.name = glfwGetJoystickName(GLFW_JOYSTICK_1);
-    rcinput.processAxes(ki);
+    rcinput.processAxes(engine);
   }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback
 // function executes
-// ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-  // make sure the viewport matches the new window dimensions; note that width
-  // and height will be significantly larger than specified on retina
-  // displays.
   SCR_WIDTH = width;
   SCR_HEIGHT = height;
   glViewport(0, 0, width, height);
