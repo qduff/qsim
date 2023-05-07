@@ -225,9 +225,10 @@ void processInput(GLFWwindow *window) { //! move this callback to input.cpp
     glfwSetWindowShouldClose(window, true);
   rcinput.present = glfwJoystickPresent(GLFW_JOYSTICK_1);
   if (rcinput.present) {
-    int count;
-    const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
-    rcinput.processAxes(ki, glfwGetJoystickName(GLFW_JOYSTICK_1), axes, count);
+    rcinput.axesvalues = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &rcinput.axescount);
+    rcinput.buttonvalues = glfwGetJoystickButtons(GLFW_JOYSTICK_3, &rcinput.buttoncount);
+    rcinput.name = glfwGetJoystickName(GLFW_JOYSTICK_1);
+    rcinput.processAxes(ki);
   }
 }
 

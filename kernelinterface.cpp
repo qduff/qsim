@@ -149,7 +149,7 @@ bool engineInterface::start() {
 
   #if defined __MINGW32__ || defined __CYGWIN__
   std::string path(
-      "C:\\Users\\qduff\\Downloads\\qsim-engine-betaflight\\build\\qsim_engine.exe");
+      "..\\..\\qsim-engine-betaflight\\build\\qsim_engine.exe");
   #else
   std::string path(
       "/home/qduff/Documents/quad_sim_stuff/sim_kernel/build/qsim_engine");
