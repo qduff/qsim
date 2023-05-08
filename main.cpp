@@ -100,7 +100,6 @@ int main() {
 
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init("#version 330");
-  bool my_tool_active = true;
 
   bool i = ki.start();
   printf("start:%d\n", i);
@@ -114,7 +113,7 @@ int main() {
 
   // render loop
   // -----------
-  double curtime, lasttime = glfwGetTime();
+  double curtime = glfwGetTime(), lasttime = glfwGetTime();
   double frametime = 0;
   int frameslasts = 0;
   int fps = 0;
@@ -166,7 +165,6 @@ int main() {
 
     {
       ZoneScopedN("calctimes");
-
       frametime = glfwGetTime() - curtime;
       curtime = glfwGetTime();
       if (curtime - lasttime >= 1) {
@@ -179,7 +177,6 @@ int main() {
         frameslasts += 1;
       }
     }
-
     {
       // ZoneScopedN("IMGUI Overlay:");
       renderInterfaceOverlay(ki);
