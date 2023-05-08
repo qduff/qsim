@@ -55,7 +55,7 @@ void osdRenderer::loadTex(std::string fontName) {
   } else {
     std::cout << "Failed to load texture" << std::endl;
   }
-  printf("%lu\n\n", sizeof(data));
+  // printf("%llu\n\n", sizeof(data));
   // Don't forget to free memory!
 }
 

@@ -3,7 +3,6 @@
 #include <istream>
 #include <vector>
 
-bool my_tool_active;
 
 void renderFPSbox(engineInterface &ki, float frametime, int fps) {
   ZoneScoped;
@@ -72,19 +71,11 @@ void renderFPSbox(engineInterface &ki, float frametime, int fps) {
   ImGui::End();
 }
 
+bool my_tool_active;
+
 void renderInterfaceOverlay(engineInterface &ki) {
   ZoneScoped;
-  ImGui::Begin("INTERFACE TOOLS", &my_tool_active, ImGuiWindowFlags_MenuBar);
-  // if (ImGui::BeginMenuBar()) {
-  //   if (ImGui::BeginMenu("TOOLS")) {
-  //     if (ImGui::MenuItem("Kill", "-9")) {
-  //       kill(ki.pid, 11);
-  //     }
-  //     ImGui::EndMenu();
-  //   }
-  //   ImGui::EndMenuBar();
-  // }
-  ImGui::BeginChild("Scrolling");
+  ImGui::Begin("INTERFACE TOOLS", &my_tool_active);
 
   ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 
@@ -102,16 +93,22 @@ void renderInterfaceOverlay(engineInterface &ki) {
 
   if (ImGui::TreeNode("Child ")) {
 
+#ifdef __linux__
+    ImGui::Text("LINUX");
     ImGui::Text("%04d: PID", ki.pid);
-    ImGui::Text("%p: Shared memory addr", ki.shmem);
-    ImGui::Text("%lu: Shared memory size", sizeof(*ki.shmem));
-
     ImGui::Text("%s (%d)", ki.isRunning ? "Running" : "DEAD", ki.wstatus);
+#elif defined _WIN32 || defined __CYGWIN__
+    ImGui::Text("WIN32");
+    ImGui::Text("%04lu: PID", ki.pi.dwProcessId);
+    ImGui::Text("%s", ki.isRunning ? "Running" : "DEAD");
+#endif
+
+    ImGui::Text("%p: Shared memory addr", ki.shmem);
+    ImGui::Text("%llu: Shared memory size", sizeof(*ki.shmem));
 
     ImGui::TreePop();
   }
 
-  ImGui::EndChild();
   ImGui::End();
 }
 
@@ -127,18 +124,16 @@ void renderOSDOverlay(osdRenderer &osd) {
   ZoneScoped;
   ImGui::Begin("OSD overlay");
 
-      std::vector<std::string> fonts = osd.getOSDFonts();
+  std::vector<std::string> fonts = osd.getOSDFonts();
 
-
-  if (ImGui::BeginListBox("##listbox 1")){
-for (int n = 0; n < fonts.size(); n++) {
-    if (ImGui::Selectable(fonts[n].c_str(), false)) {
-      osd.changeOSDFont(fonts[n]);
+  if (ImGui::BeginListBox("##listbox 1")) {
+    for (int n = 0; n < fonts.size(); n++) {
+      if (ImGui::Selectable(fonts[n].c_str(), false)) {
+        osd.changeOSDFont(fonts[n]);
+      }
     }
+    ImGui::EndListBox();
   }
-  ImGui::EndListBox();
-  }
-  
 
   ImGui::End();
 }

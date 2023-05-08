@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../kernelinterface.hpp"
+#include "../engineinterface.hpp"
 #include "../libraries/imgui/imgui.h"
 #include "../renderers/osd.h"
 
